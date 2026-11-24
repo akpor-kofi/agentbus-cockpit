@@ -127,6 +127,9 @@ export const NewSessionDialog: React.FC<NewSessionDialogProps> = ({
   const [listing, setListing] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const listedAt = useRef('');
+  // The folder field: the branch pickers send the person to it while no
+  // folder is picked, since the branches are that folder's.
+  const folderInput = useRef<HTMLInputElement>(null);
   const [starting, setStarting] = useState(false);
   // Start was pressed with something missing: the missing field says so.
   const [tried, setTried] = useState(false);
@@ -307,6 +310,7 @@ export const NewSessionDialog: React.FC<NewSessionDialogProps> = ({
         <label>
           <span>Folder</span>
           <input
+            ref={folderInput}
             name="folder"
             type="text"
             aria-invalid={tried && !hasWhere ? true : undefined}
@@ -392,7 +396,14 @@ export const NewSessionDialog: React.FC<NewSessionDialogProps> = ({
             )}
           </label>
         )}
-        {fromBase && (
+        {fromBase && !at && (
+          <div className="nd-base">
+            <button type="button" className="nd-need-folder" onClick={() => folderInput.current?.focus()}>
+              Pick a folder above: its {start === 'remote' ? "remotes and their branches" : 'branches'} are listed here.
+            </button>
+          </div>
+        )}
+        {fromBase && at && (
           <div className="nd-base">
             {start === 'remote' && (
               <label>
@@ -402,7 +413,7 @@ export const NewSessionDialog: React.FC<NewSessionDialogProps> = ({
                   label="Remote"
                   value={remote}
                   disabled={!listed || listed.remotes.length === 0}
-                  placeholder={listing && !listed ? LOADING : 'No remotes'}
+                  placeholder={listing && !listed ? LOADING : listError ? '' : 'This repo has no remotes'}
                   options={(listed?.remotes ?? []).map((r) => ({ value: r, label: r }))}
                   onChange={(v) => {
                     setRemote(v);
@@ -420,12 +431,9 @@ export const NewSessionDialog: React.FC<NewSessionDialogProps> = ({
                 suggestions={branchNames}
                 labels={branchLabels}
                 onChange={setBase}
-                disabled={!at}
                 placeholder={
-                  !at
-                    ? 'Pick a folder first'
-                    : listing
-                      ? LOADING
+                  listing
+                    ? LOADING
                       : start === 'remote'
                         ? 'Search the remote\'s branches'
                         : 'Search branches, or type a tag or commit id'
