@@ -1742,6 +1742,7 @@ export const App: React.FC<AppProps> = ({ dataSource: propDataSource, sourceLabe
           loadAgents={loadSaved}
           loadHarnesses={dataSource.getHarnesses ? loadHarnesses : undefined}
           onStart={startRun}
+          listBranches={dataSource.listBranches ? (req) => dataSource.listBranches!(req) : undefined}
           folders={folders}
           machines={runners.runners ?? []}
           onClose={() => setNewSession(null)}
